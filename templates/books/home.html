@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home - MyLibrary{% endblock %}
+
+{% block content %}
+
+  <!-- BILLBOARD / SLIDER -->
+  <section id="billboard" class="mb-5">
+    <div class="container">
+      <div class="position-relative">
+        <div class="main-slider">
+          {% for book in recent_books %}
+          <div class="slider-item row align-items-center">
+            <div class="col-md-6">
+              <h2 class="fw-bold">{{ book.title }}</h2>
+              <p>{{ book.description|truncatewords:25 }}</p>
+              <a href="{% url 'books:detail' book.pk %}" class="btn btn-outline-primary">
+                Read More <i class="icon icon-ns-arrow-right"></i>
+              </a>
+            </div>
+            <div class="col-md-6">
+              <img src="{{ book.image_cover.url }}"
+                   alt="{{ book.title }}"
+                   class="img-fluid rounded shadow-sm card-img-top book-cover">
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURED BOOKS -->
+  <section id="featured-books" class="py-5">
+    <div class="container">
+      <div class="text-center mb-4">
+        <h2 class="fw-bold">Featured Books</h2>
+      </div>
+      <div class="row">
+        {% for book in featured_books %}
+        <div class="col-md-3 mb-4">
+          <div class="card h-100">
+            <img src="{{ book.image_cover.url }}"
+                 class="card-img-top"
+                 alt="{{ book.title }}">
+            <div class="card-body d-flex flex-column">
+              <h5 class="card-title">{{ book.title }}</h5>
+              <p class="text-muted mb-3">
+                {% for author in book.authors.all %}
+                  {{ author.name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+              </p>
+              <a href="{% url 'books:detail' book.pk %}" class="mt-auto btn btn-primary">
+                Borrow
+              </a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="text-end">
+        <a href="{% url 'books:list' %}" class="text-decoration-none">
+          View All Books <i class="icon icon-ns-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- POPULAR BOOKS BY CATEGORY -->
+  <section id="popular-books" class="py-5 bg-light">
+    <div class="container">
+      <div class="text-center mb-4">
+        <h2 class="fw-bold">Popular Books</h2>
+      </div>
+
+      <ul class="nav nav-tabs justify-content-center mb-4" role="tablist">
+        <li class="nav-item">
+          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#all-books">
+            All
+          </button>
+        </li>
+        {% for category in categories %}
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#cat-{{ category.pk }}">
+            {{ category.name }}
+          </button>
+        </li>
+        {% endfor %}
+      </ul>
+
+      <div class="tab-content">
+        <div id="all-books" class="tab-pane fade show active">
+          <div class="row">
+            {% for book in popular_books %}
+            <div class="col-md-3 mb-4">
+              <div class="card h-100">
+                <img src="{{ book.image_cover.url }}" class="card-img-top" alt="{{ book.title }}">
+                <div class="card-body d-flex flex-column">
+                  <h5 class="card-title">{{ book.title }}</h5>
+                  <a href="{% url 'books:detail' book.pk %}" class="mt-auto btn btn-primary">
+                    Borrow
+                  </a>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {% for category in categories %}
+        <div id="cat-{{ category.pk }}" class="tab-pane fade">
+          <div class="row">
+            {% for book in category.books.all|slice:":8" %}
+            <div class="col-md-3 mb-4">
+              <div class="card h-100">
+                <img src="{{ book.image_cover.url }}" class="card-img-top " alt="{{ book.title }}">
+                <div class="card-body d-flex flex-column">
+                  <h5 class="card-title">{{ book.title }}</h5>
+                  <a href="{% url 'books:detail' book.pk %}" class="mt-auto btn btn-primary">
+                    Borrow
+                  </a>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <!-- BROWSE BY CATEGORY -->
+  <section id="browse-categories" class="py-5">
+    <div class="container text-center">
+      <h2 class="fw-bold mb-3">Browse by Category</h2>
+      <div class="d-flex flex-wrap justify-content-center gap-2">
+        {% for category in categories %}
+        <a href="{% url 'books:list' %}?category={{ category.slug }}"
+           class="btn btn-outline-secondary">
+          {{ category.name }}
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+{% endblock %}

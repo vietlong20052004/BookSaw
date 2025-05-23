@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto max-w-md py-12">
+  <h2 class="text-2xl font-semibold mb-6">Sign Up</h2>
+
+  {% if form.errors %}
+  <div class="bg-red-100 text-red-700 p-3 rounded mb-4">
+    Please correct the errors below.
+  </div>
+  {% endif %}
+
+  <form method="post" class="bg-white shadow-md rounded px-8 py-6">
+    {% csrf_token %}
+    <div class="mb-4">
+      {{ form.username.label_tag }}
+      {{ form.username }}
+      {{ form.username.errors }}
+    </div>
+    <div class="mb-4">
+      {{ form.password1.label_tag }}
+      {{ form.password1 }}
+      {{ form.password1.errors }}
+    </div>
+    <div class="mb-4">
+      {{ form.password2.label_tag }}
+      {{ form.password2 }}
+      {{ form.password2.errors }}
+    </div>
+    <button type="submit"
+            class="w-full py-2 bg-green-600 text-white rounded hover:bg-green-700">
+      Create Account
+    </button>
+  </form>
+
+  <p class="mt-4 text-sm text-gray-600">
+    Already have an account?
+    <a href="{% url 'accounts:login' %}"
+       class="text-blue-600 hover:underline">
+      Log in here
+    </a>.
+  </p>
+</div>
+{% endblock %}

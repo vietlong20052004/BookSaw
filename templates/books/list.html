@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Browse Books – MyLibrary{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <h1 class="mb-4">Browse Books</h1>
+
+  <!-- Search & Filters -->
+  <form method="get" class="row g-3 mb-5 align-items-end">
+    <div class="col-md-4">
+      <label for="search" class="form-label">Search</label>
+      <input
+        id="search"
+        type="text" name="q" value="{{ q }}"
+        placeholder="Title or author…"
+        class="form-control"
+      >
+    </div>
+
+    <div class="col-md-2">
+      <label for="category" class="form-label">Category</label>
+      <select id="category" name="category" class="form-select">
+        <option value="" {% if not selected_category %}selected{% endif %}>All</option>
+        {% for c in categories %}
+        <option value="{{ c.slug }}" {% if c.slug == selected_category %}selected{% endif %}>
+          {{ c.name }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <label for="language" class="form-label">Language</label>
+      <select id="language" name="language" class="form-select">
+        <option value="" {% if not selected_language %}selected{% endif %}>Any</option>
+        {% for l in languages %}
+        <option value="{{ l }}" {% if l == selected_language %}selected{% endif %}>
+          {{ l }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-2">
+      <label for="year" class="form-label">Year</label>
+      <select id="year" name="year" class="form-select">
+        <option value="" {% if not selected_year %}selected{% endif %}>Any</option>
+        {% for y in years %}
+        <option value="{{ y }}" {% if y|stringformat:"s" == selected_year %}selected{% endif %}>
+          {{ y }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-2 d-grid">
+      <button type="submit" class="btn btn-primary">Apply Filters</button>
+    </div>
+  </form>
+
+  <!-- Results Grid -->
+  <div class="row g-4">
+    {% for book in page_obj %}
+    <div class="col-sm-6 col-md-4 col-lg-3">
+      <div class="card h-100 shadow-sm">
+        <a href="{% url 'books:detail' book.pk %}">
+          <img
+            src="{{ book.image_cover.url }}"
+            class="card-img-top card-cover"
+            alt="{{ book.title }}"
+
+          >
+        </a>
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title mb-1">{{ book.title }}</h5>
+          <p class="card-text text-muted mb-3" style="font-size: .9rem;">
+            {% for author in book.authors.all %}
+              {{ author.name }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          </p>
+          <a href="{% url 'books:detail' book.pk %}"
+             class="mt-auto btn btn-outline-primary btn-sm">
+            Details
+          </a>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="alert alert-warning text-center">
+        No books match your criteria.
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.paginator.num_pages > 1 %}
+  <nav aria-label="Page navigation" class="mt-5">
+    <ul class="pagination justify-content-center">
+      {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}
+                                   {% if selected_category %}category={{ selected_category }}&{% endif %}
+                                   {% if selected_language %}language={{ selected_language }}&{% endif %}
+                                   {% if selected_year %}year={{ selected_year }}&{% endif %}
+                                   page={{ page_obj.previous_page_number }}"
+           aria-label="Previous">
+          <span aria-hidden="true">&laquo; Prev</span>
+        </a>
+      </li>
+      {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">&laquo; Prev</span>
+      </li>
+      {% endif %}
+
+      {% for num in page_obj.paginator.page_range %}
+      <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+        <a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}
+                                  {% if selected_category %}category={{ selected_category }}&{% endif %}
+                                  {% if selected_language %}language={{ selected_language }}&{% endif %}
+                                  {% if selected_year %}year={{ selected_year }}&{% endif %}
+                                  page={{ num }}">
+          {{ num }}
+        </a>
+      </li>
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?{% if q %}q={{ q }}&{% endif %}
+                                   {% if selected_category %}category={{ selected_category }}&{% endif %}
+                                   {% if selected_language %}language={{ selected_language }}&{% endif %}
+                                   {% if selected_year %}year={{ selected_year }}&{% endif %}
+                                   page={{ page_obj.next_page_number }}"
+           aria-label="Next">
+          <span aria-hidden="true">Next &raquo;</span>
+        </a>
+      </li>
+      {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">Next &raquo;</span>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+{% endblock %}

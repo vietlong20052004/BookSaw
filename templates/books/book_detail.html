@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block title %}{{ book.title }} – MyLibrary{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+
+  <!-- BOOK HEADER -->
+  <div class="row mb-5">
+    <!-- COVER -->
+    <div class="col-md-4 mb-4">
+      {% if book.image_cover %}
+      <img
+        src="{{ book.image_cover.url }}"
+        alt="{{ book.title }}"
+        class="img-fluid rounded shadow-sm"
+      >
+      {% else %}
+      <div
+        class="bg-light d-flex align-items-center justify-content-center rounded"
+        style="height: 300px;"
+      >
+        <span class="text-muted">No Cover Image</span>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- META -->
+    <div class="col-md-8">
+      <h1 class="mb-3">{{ book.title }}</h1>
+
+      <p class="mb-1">
+        <strong>Author:</strong>
+        {% for author in book.authors.all %}
+          <a href="{% url 'books:author-detail' author.pk %}">{{ author.name }}</a>
+          {% if not forloop.last %}, {% endif %}
+        {% endfor %}
+      </p>
+
+      <p class="mb-1">
+        <strong>Categories:</strong>
+        {% for cat in book.categories.all %}
+          <a href="{% url 'books:category-list' cat.slug %}">{{ cat.name }}</a>
+          {% if not forloop.last %}, {% endif %}
+        {% empty %}
+          <span class="text-muted">Uncategorized</span>
+        {% endfor %}
+      </p>
+
+      <p class="mb-1"><strong>ISBN:</strong> {{ book.isbn }}</p>
+      <p class="mb-1"><strong>Publisher:</strong> {{ book.publisher }}</p>
+      <p class="mb-1"><strong>Year:</strong> {{ book.year_of_publication }}</p>
+      <p class="mb-1"><strong>Language:</strong> {{ book.language }}</p>
+
+      <div class="mt-4">
+        {{ book.description|linebreaks }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Reviews & Ratings -->
+<div class="row mb-5">
+  <div class="col-12">
+    <h2 class="h4 mb-3">Reviews &amp; Ratings</h2>
+
+    {% if avg_rating %}
+      <p>⭐️ Average Rating: <strong>{{ avg_rating|floatformat:1 }}</strong> / 5</p>
+    {% else %}
+      <p class="text-muted">No ratings yet. Be the first to review!</p>
+    {% endif %}
+
+    <div class="list-group mb-4">
+      {% for review in reviews %}
+      <div class="list-group-item">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ review.user.username }}</strong>
+            &nbsp;
+            {# Stars #}
+            {% for i in rating_range %}
+              {% if i <= review.rating %}
+                <span class="text-warning">★</span>
+              {% else %}
+                <span class="text-muted">☆</span>
+              {% endif %}
+            {% endfor %}
+          </div>
+          <small class="text-muted">{{ review.created_at|naturaltime }}</small>
+        </div>
+
+        <p class="mt-2 mb-1">{{ review.review|linebreaks }}</p>
+
+        <div class="d-flex gap-3">
+          {# Like button #}
+          <form action="{% url 'books:review-like' review.id %}" method="post" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm
+              {% if user_likes.review.id == True %}btn-success{% else %}btn-outline-success{% endif %}">
+              👍 {{ review.likes_count }}
+            </button>
+          </form>
+
+          {# Dislike button #}
+          <form action="{% url 'books:review-dislike' review.id %}" method="post" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm
+              {% if user_likes.review.id == False %}btn-danger{% else %}btn-outline-danger{% endif %}">
+              👎 {{ review.dislikes_count }}
+            </button>
+          </form>
+        </div>
+      </div>
+      {% empty %}
+      <div class="alert alert-info">No one has reviewed this book yet.</div>
+      {% endfor %}
+    </div>
+
+      {% if user.is_authenticated %}
+      <div class="card mb-4">
+        <div class="card-body">
+          <h3 class="h5 mb-3">Add Your Review</h3>
+          <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              {{ form.rating.label_tag }}
+              {{ form.rating }}
+              {{ form.rating.errors }}
+            </div>
+            <div class="mb-3">
+              {{ form.review.label_tag }}
+              {{ form.review }}
+              {{ form.review.errors }}
+            </div>
+            <button type="submit" class="btn btn-success">Submit Review</button>
+          </form>
+        </div>
+      </div>
+      {% else %}
+      <p>
+        <a href="{% url 'accounts:login' %}?next={% url 'books:detail' book.pk %}">
+          Log in to leave a review
+        </a>
+      </p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- AVAILABLE COPIES / BORROW REQUEST -->
+  {% if user.is_authenticated %}
+  <div class="row">
+    <div class="col-12">
+      <h2 class="h4 mb-3">Available Copies</h2>
+      <table class="table table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>Copy Code</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for copy in book.copies.all %}
+          <tr>
+            <td>{{ copy.copy_code }}</td>
+            <td>
+              {% if copy.is_available %}
+              <span class="badge bg-success">Available</span>
+              {% else %}
+              <span class="badge bg-secondary">Checked Out</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if copy.is_available %}
+              <form action="{% url 'borrows:request-borrow' copy.id %}" method="post" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary btn-sm">
+                  Request Copy
+                </button>
+              </form>
+              {% else %}
+              <button class="btn btn-outline-secondary btn-sm" disabled>
+                Unavailable
+              </button>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="3" class="text-center text-muted">No copies available.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

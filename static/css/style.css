@@ -1,0 +1,45 @@
+body { font-family: sans-serif; margin:0; }
+.site-header { display:flex; justify-content: space-between; padding:1rem; background:#f4f4f4; }
+@media (max-width: 480px) {
+  .site-header { flex-direction: column; align-items: flex-start; }
+}
+.book-cover {
+  width: 150px;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.card-cover {
+  width: 100%;
+  aspect-ratio: 2 / 3;   /* 2 units wide by 3 units tall */
+  object-fit: cover;     /* crop to fill the box */
+  display: block;        /* no inline spacing */
+}
+
+.dropdown-menu {
+    width: 550px;
+    max-width: 90vw;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+@media (max-width: 576px) {
+    .dropdown-menu {
+        width: 580px;
+        transform: translateX(-25%);
+    }
+}
+
+/* Notification item styling */
+.dropdown-item {
+    font-size: 1rem;            /* Text size */
+    white-space: normal;        /* Allows text wrapping */
+    padding: 0.75rem 1rem;      /* Spacing inside each item */
+    border-bottom: 1px solid #f0f0f0; /* Separator between items */
+}
+
+.dropdown-item small {
+    font-size: 0.8rem;
+    color: #6c757d
+}

@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}My Loans{% endblock %}
+
+{% block content %}
+<div class="container py-8">
+  <h1 class="mb-4">My Books &amp; Loan History</h1>
+
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>Copy Code</th>
+        <th>Title</th>
+        <th>Borrowed On</th>
+        <th>Due Date</th>
+        <th>Returned On</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {# --- First: pending requests --- #}
+      {% for req in requests %}
+      <tr>
+        <td>{{ req.copy.copy_code }}</td>
+        <td>
+          <a href="{% url 'books:detail' req.copy.book.pk %}">
+            {{ req.copy.book.title }}
+          </a>
+        </td>
+        <td>&mdash;</td>
+        <td>&mdash;</td>
+        <td>&mdash;</td>
+        <td>
+          <span class="badge bg-warning text-dark">Pending</span>
+        </td>
+        <td>
+          <button class="btn btn-sm btn-outline-secondary" disabled>
+            Awaiting
+          </button>
+        </td>
+      </tr>
+      {% empty %}
+        {# no pending requests – skip #}
+      {% endfor %}
+
+      {# --- Then: approved / returned loans --- #}
+      {% for loan in loans %}
+      <tr>
+        <td>{{ loan.copy.copy_code }}</td>
+        <td>
+          <a href="{% url 'books:detail' loan.copy.book.pk %}">
+            {{ loan.copy.book.title }}
+          </a>
+        </td>
+        <td>{{ loan.borrow_date|date:"Y-m-d" }}</td>
+        <td>{{ loan.due_date|date:"Y-m-d" }}</td>
+        <td>
+          {% if loan.returned_date %}
+            {{ loan.returned_date|date:"Y-m-d" }}
+          {% else %}
+            &mdash;
+          {% endif %}
+        </td>
+        <td>
+          {% if loan.returned_date %}
+            <span class="badge bg-secondary">Returned</span>
+          {% elif loan.is_overdue %}
+            <span class="badge bg-danger">Overdue</span>
+          {% else %}
+            <span class="badge bg-success">Borrowed</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if not loan.returned_date %}
+            <form action="{% url 'borrows:return-loan' loan.id %}"
+                  method="post" class="d-inline">
+              {% csrf_token %}
+              <button type="submit"
+                      class="btn btn-sm btn-outline-primary">
+                Return
+              </button>
+            </form>
+          {% else %}
+            <button class="btn btn-sm btn-outline-secondary" disabled>
+              &check;
+            </button>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7" class="text-center text-muted">
+          You have no completed loans.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
